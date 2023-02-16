@@ -49,3 +49,70 @@ LIMIT 10;
 SELECT name, website, primary_poc
 FROM accounts
 WHERE name = 'Exxon Mobil';
+
+
+SELECT name
+FROM accounts
+WHERE name LIKE 'C%'; 
+
+
+SELECT name
+FROM accounts
+WHERE name LIKE '%one%';
+
+
+SELECT name
+FROM accounts
+WHERE name LIKE '%s';
+
+SELECT name, primary_poc, sales_rep_id
+FROM accounts
+WHERE name IN ('Walmart', 'Target', 'Nordstrom');
+
+
+SELECT *
+FROM web_events
+WHERE channel in ('organic','adwords');
+
+
+SELECT name, primary_poc, sales_rep_id
+FROM accounts
+WHERE name NOT IN ('Walmart', 'Target', 'Nordstrom');
+
+
+SELECT *
+FROM web_events
+WHERE channel NOT IN ('organic', 'adwords');
+
+
+SELECT name
+FROM accounts
+WHERE name NOT LIKE 'C%';
+
+
+SELECT name
+FROM accounts
+WHERE name NOT LIKE '%one%';
+
+
+
+SELECT name
+FROM accounts
+WHERE name NOT LIKE '%s';
+
+SELECT id, account_id, standard_qty, poster_qty, gloss_qty
+FROM orders
+WHERE standard_qty > 100 AND poster_qty=0 AND gloss_qty=0;
+
+
+SELECT id, account_id, gloss_qty
+FROM orders
+WHERE gloss_qty BETWEEN 24 AND 29
+SORT gloss_qty
+
+SELECT id, account_id, gloss_qty
+FROM orders
+WHERE gloss_qty BETWEEN 24 AND 29
+SORT gloss_qty DESC
+
+

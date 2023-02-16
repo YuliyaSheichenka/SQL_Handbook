@@ -74,4 +74,62 @@ WHERE name = 'Exxon Mobil';
 -- In this case, there should be single quotes (') around the string (not double quotes (")).
 ````
 
+### Derived columns
+Derived columns can be used to display the result of mathematical operations on other columns (ex. calculating percentages or totals).
+You can give an ad hoc name to a derived column by using the AS keyword.
+
+````sql
+
+SELECT id, account_id, 
+   poster_amt_usd/(standard_amt_usd + gloss_amt_usd + poster_amt_usd)*100 AS post_per
+FROM orders
+LIMIT 10;
+--Here, we create a column post_per that displays, for each of the 10 rows, the result of the calculation.
+-- (an order may include several types of paper, and we want to know, for each order, what percentage of the revenue 
+-- is attributable to poster paper).
+
+````
+
+### Looking for text results with inexact search term
+You can use LIKE keyword with wildcards to search e.g. for a name of a company, a website address or other text information where you don't want the output be limited to the exact search term.
+
+````sql
+
+SELECT name
+FROM accounts
+WHERE name LIKE '%one%';
+-- Looking for all company names that contain "one" and any number of any characters before or after the search term "one".
+
+````
+
+### Looking for all of several search terms
+You can use IN to search for results that use each of the terms specified in the paretheses. 
+The terms may be in the form of text (you need to use quotes around them: 'searchterm') or numbers (you can enter them as is: 34.5)
+Most SQL environments allow using either double or single quotes to accomodate for the fact that you may need to look for a text string that has quotes or an apostrophe inside it.
+The search terms within parentheses need to be separated with a comma.
+
+````sql
+
+SELECT name, primary_poc, sales_rep_id
+FROM accounts
+WHERE name IN ('Walmart', 'Target', 'Nordstrom');
+--Looking for information about each of the three companies.
+````
+
+
+### Using NOT with IN or with LIKE
+
+````sql 
+
+SELECT *
+FROM web_events
+WHERE channel NOT IN ('organic', 'adwords');
+-- Looking for clients that were contacted by channels other than 'organic' or 'adwords'
+
+
+SELECT name
+FROM accounts
+WHERE name NOT LIKE 'C%';
+-- Looking for clients whose name does not begin with 'C'.
+
 
