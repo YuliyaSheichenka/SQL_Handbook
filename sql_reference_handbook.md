@@ -132,4 +132,46 @@ FROM accounts
 WHERE name NOT LIKE 'C%';
 -- Looking for clients whose name does not begin with 'C'.
 
+````
+
+# BETWEEN
+
+````sql
+SELECT id, account_id, occurred_at, gloss_qty
+FROM orders
+WHERE gloss_qty BETWEEN 24 AND 29
+ORDER BY gloss_qty;
+-- BETWEEN operator is inclusive of endpoints: the statement in the query above
+-- is equivalent to 
+-- WHERE gloss_qty >= 24 AND gloss_qty <= 29
+````
+
+# Using BETWEEN to select a time period
+
+Also see discussion at stackoverflow:
+https://stackoverflow.com/questions/5125076/sql-query-to-select-dates-between-two-dates
+
+````sql
+SELECT *
+FROM web_events
+WHERE channel IN ('organic', 'adwords') 
+AND occurred_at BETWEEN '2016-01-01' AND '2017-01-01'
+ORDER BY occurred_at DESC;
+-- Selecting dates in 2016.
+
+-- BETWEEN considers that the new date begins at 00:00:00 (i.e. midnight). So if you use '2016-12-31' as the endpoint, 
+-- your time period will actually end at 2016-12-31 00:00:00 and won't include events that occured after 00:00:00 on December, 31. 
+-- This is the reason why we set the right-side endpoint of the period at '2017-01-01' 
+-- but it will also include events that happenned on 2017-01-01 00:00:00.
+
+
+-- Variant of the query above without the complications of BETWEEN:
+SELECT *
+FROM web_events
+WHERE channel IN ('organic', 'adwords') 
+AND occurred_at >= '2016-01-01' AND occurred_at < '2017-01-01'
+ORDER BY occurred_at DESC;
+````
+
+
 

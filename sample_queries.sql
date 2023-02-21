@@ -116,3 +116,15 @@ WHERE gloss_qty BETWEEN 24 AND 29
 SORT gloss_qty DESC
 
 
+SELECT *
+FROM orders
+WHERE standard_qty > 1000 AND poster_qty = 0 AND gloss_qty = 0;
+
+SELECT name
+FROM accounts
+WHERE name NOT LIKE 'C%' AND name LIKE '%s';
+
+SELECT id, account_id, occurred_at, gloss_qty
+FROM orders
+WHERE gloss_qty BETWEEN 24 AND 29
+ORDER BY gloss_qty;
