@@ -134,7 +134,7 @@ WHERE name NOT LIKE 'C%';
 
 ````
 
-# BETWEEN
+### BETWEEN
 
 ````sql
 SELECT id, account_id, occurred_at, gloss_qty
@@ -146,7 +146,7 @@ ORDER BY gloss_qty;
 -- WHERE gloss_qty >= 24 AND gloss_qty <= 29
 ````
 
-# Using BETWEEN to select a time period
+### Using BETWEEN to select a time period
 
 Also see discussion at stackoverflow:
 https://stackoverflow.com/questions/5125076/sql-query-to-select-dates-between-two-dates
@@ -162,7 +162,7 @@ ORDER BY occurred_at DESC;
 -- BETWEEN considers that the new date begins at 00:00:00 (i.e. midnight). So if you use '2016-12-31' as the endpoint, 
 -- your time period will actually end at 2016-12-31 00:00:00 and won't include events that occured after 00:00:00 on December, 31. 
 -- This is the reason why we set the right-side endpoint of the period at '2017-01-01' 
--- but it will also include events that happenned on 2017-01-01 00:00:00.
+-- but it will also include events that happened on 2017-01-01 00:00:00.
 
 
 -- Variant of the query above without the complications of BETWEEN:
@@ -173,5 +173,41 @@ AND occurred_at >= '2016-01-01' AND occurred_at < '2017-01-01'
 ORDER BY occurred_at DESC;
 ````
 
+### How to select all columns from both tables you are joining
 
+````sql
 
+SELECT *
+FROM orders
+JOIN accounts
+ON orders.account_id = accounts.id;
+-- * selects all columns from both tables being joined, "orders" and "accounts", i.e. all these columns
+-- will be shown as the result of the query.
+
+-- Compare with the query below that executes the join but only the columns from the "orders" table will be shown:
+SELECT orders.*
+FROM orders
+JOIN accounts
+ON orders.account_id = accounts.id;
+-- orders.* means that all columns of the orders table are selected (but none of the columns of the "accounts" table
+-- with which it is being joined)
+
+````
+
+### Order of columns selected during JOIN
+Generally, columns in the view that you get as a result of a query are be shown in the same order as in the SELECT clause. The same is true for the view that results from JOIN.
+
+````sql
+SELECT accounts.*, orders.*
+FROM accounts
+JOIN orders
+ON orders.account_id = accounts.id;
+-- Here, we select all columns from the "accounts" table and all columns from the "orders" table.
+-- The columns from the "accounts" table will be the first (leftmost) to appear in the resulting view.
+
+SELECT orders.*, accounts.*
+FROM accounts
+JOIN orders
+ON orders.account_id = accounts.id;
+-- The columns from the "orders" table will be leftmost in the resulting view
+````
