@@ -211,3 +211,26 @@ JOIN orders
 ON orders.account_id = accounts.id;
 -- The columns from the "orders" table will be leftmost in the resulting view
 ````
+
+### Return a table with a column where the last and the first lettres for each string in the original column have been removed
+
+````sql
+SELECT original_column, SUBSTRING(original_column, 2, LENGTH(original_column) - 2) AS result 
+FROM table_name;
+
+-- SUBSTRING: This is the function name in PostgreSQL that extracts a substring from a string.
+-- original_column: This is the name of the column containing the strings from which you want to extract the substring.
+-- 2: This is the starting position of the substring. In this case, we start from the second character, as the index in PostgreSQL starts from 1.
+-- LENGTH(original_column) - 2: This is the length of the substring. We subtract 2 from the length of the original string to exclude the first and last characters. By using LENGTH(original_column), we dynamically calculate the length of each string in the column.
+--So, the substring(original_column, 2, length(original_column) - 2) expression will extract a substring from the original_column starting from the second character and having a length equal to the length of the original string minus 2 (excluding the first and last characters).
+````
+
+### Select minimum and maximum value from a table
+````sql
+SELECT 
+ MIN(age) AS age_min, 
+ MAX(age) AS age_max
+FROM 
+   people;
+-- here, whe have selected maximum and minimum values from column 'age' from the table 'people'.
+````
