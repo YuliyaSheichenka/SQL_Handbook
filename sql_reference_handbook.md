@@ -234,3 +234,12 @@ FROM
    people;
 -- here, whe have selected maximum and minimum values from column 'age' from the table 'people'.
 ````
+
+### Convert string to uppercase
+````sql
+SELECT col_with_strings, UPPER(col_with_strings) AS col_with_uppercase_strings
+FROM makeuppercase_table;
+-- Here we work with the table named "makeuppercase_table".
+-- We have converted strings contained in the column "col_with_strings"
+-- to upper case and returned the result in the column "col_with_uppercase_strings".
+-- We return the table with two columns, "col_with_strings" and "col_with_uppercase_strings" for comparison.
