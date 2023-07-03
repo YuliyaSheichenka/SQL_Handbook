@@ -243,3 +243,31 @@ FROM makeuppercase_table;
 -- We have converted strings contained in the column "col_with_strings"
 -- to upper case and returned the result in the column "col_with_uppercase_strings".
 -- We return the table with two columns, "col_with_strings" and "col_with_uppercase_strings" for comparison.
+````
+
+### Select the latest date from a column
+````sql
+--Using an aggregation function:
+SELECT MAX(occurred_at)
+FROM web_events;
+-- MAX returns the most recent date or time from a column with timestamps
+-- MIN the oldest date or time.
+
+-- Using LIMIT clause:
+SELECT occurred_at
+FROM web_events
+ORDER BY occurred_at DESC
+LIMIT 1;
+-- Here, we sort timestaps in descending order and limit the result to 1 row
+````
+
+### How to find the median of a column
+````sql
+--Using subquery
+SELECT *
+FROM (SELECT total_amt_usd
+         FROM orders
+         ORDER BY total_amt_usd
+         LIMIT 3457) AS Table1
+ORDER BY total_amt_usd DESC
+LIMIT 2;
