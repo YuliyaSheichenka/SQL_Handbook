@@ -271,3 +271,9 @@ FROM (SELECT total_amt_usd
          LIMIT 3457) AS Table1
 ORDER BY total_amt_usd DESC
 LIMIT 2;
+````
+
+### Order of columns in GROUP BY and ORDER BY clauses
+The order of column names in GROUP BY clause does not matter (the order of columns will be the same)
+The order of column names in ORDER BY clause matters as columns are ordered from left to right according 
+to their order in the ORDER BY clause.
