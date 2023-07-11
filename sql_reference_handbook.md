@@ -277,3 +277,21 @@ LIMIT 2;
 The order of column names in GROUP BY clause does not matter (the order of columns will be the same)
 The order of column names in ORDER BY clause matters as columns are ordered from left to right according 
 to their order in the ORDER BY clause.
+
+### SELECT DISTINCT
+DISTINCT provides the unique rows across the columns written in the SELECT statement.
+Using DISTINCT in aggregations can slow queries.
+
+````sql
+SELECT DISTINCT a.name AS account_name, r.name AS region_name
+FROM accounts a
+JOIN sales_reps s
+ON s.id = a.sales_rep_id
+JOIN region r
+ON r.id = s.region_id
+ORDER BY account_name;
+-- The query allows retrieving unique combinations or region name and account name
+-- (ex. if you want to see if there is an account that is associated with more than one regions)
+-- Note that the if you don't give differing aliases to columns a.name (from accounts table) and r.name (from region table),
+-- the resulting view will only contain one column "name". 
+````
