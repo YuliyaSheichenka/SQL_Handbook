@@ -295,3 +295,24 @@ ORDER BY account_name;
 -- Note that the if you don't give differing aliases to columns a.name (from accounts table) and r.name (from region table),
 -- the resulting view will only contain one column "name". 
 ````
+
+### Difference between HAVING and WHERE
+HAVING can be used on a column created using an aggregating function, WHERE cannot.
+WHERE is placed before GROUP BY, HAVING after GROUP BY and before ORDER BY.
+
+### LIMIT and big databases
+When working with a big database it is useful to use the LIMIT clause when you are trying to have a look at the general constitution of a database for reasons of speed and cost.
+
+### Referring to columns in SELECT by numbers
+````sql 
+SELECT DATE_TRUNC('year', occurred_at) AS year, SUM(total_amt_usd)
+FROM orders
+GROUP BY year
+ORDER BY SUM(total_amt_usd) DESC;
+
+-- is equivalent to
+SELECT DATE_TRUNC('year', occurred_at) AS year, SUM(total_amt_usd)
+FROM orders
+GROUP BY 1
+ORDER BY 2 DESC;
+````
