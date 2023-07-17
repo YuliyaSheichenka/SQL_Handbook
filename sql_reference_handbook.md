@@ -315,4 +315,20 @@ SELECT DATE_TRUNC('year', occurred_at) AS year, SUM(total_amt_usd)
 FROM orders
 GROUP BY 1
 ORDER BY 2 DESC;
+
+````
+
+### CASE Clause
+CASE statement in always used within SELECT clause.
+CASE statement includes WHEN, THEN, (optionnaly ELSE) and END keywords.
+(There are no commas at the end of each condition beginning with WHEN)
+````sql
+SELECT account_id, CASE WHEN standard_qty = 0 OR standard_qty IS NULL THEN 0
+                        ELSE standard_amt_usd/standard_qty END AS unit_price
+FROM orders
+LIMIT 10;
+-- in this case, we create the column unit_price that contains either the result of division of 
+-- standard_amt_usd by standard_qty or 0 if standard_qty is equal to 0 or is null.
+-- Inclution of CASE statement allows avoiding the error caused by division by zero if 
+-- standard_qty is eqal to 0 or is null.
 ````
