@@ -344,6 +344,25 @@ JOIN orders o
 ON a.id = o.account_id
 GROUP BY 1 -- variant: GROUP BY a.name
 ORDER BY 2 DESC;
+
+
+-- Note that in the example above the categories 'SUM(total_amt_usd)' > 200000 and 'SUM(total_amt_usd) > 100000' overlap 
+-- because every sum that is greater than 200000 is also greater than 100000. 
+-- The example above works because code is executed line after  line, 
+-- so if after the first WHEN statement 'SUM(total_amt_usd)' > 200000' the value assigned to the customer_level is 'top', 
+-- this value is not replaced by 'middle' when executing the second WHEN statement 'SUM(total_amt_usd) > 100000'.
+
+-- However, to avoid confusion, it is better to create non-overlapping categories as shown below:
+SELECT a.name, SUM(total_amt_usd) total_spent, 
+        CASE WHEN SUM(total_amt_usd) > 200000 THEN 'top'
+        WHEN SUM(total_amt_usd) > 100000 AND SUM(total_amt_usd) <= 200000 THEN 'middle'
+        ELSE 'low' END AS customer_level
+FROM accounts a
+JOIN orders o
+ON a.id = o.account_id
+GROUP BY 1 -- variant: GROUP BY a.name
+ORDER BY 2 DESC;
+
 ````
 
 # Order of dates
@@ -364,4 +383,7 @@ ORDER BY 2 DESC;
 -- Note that YYYY-MM-DD format allows ordering dates as strings in alphabetical order without converting them to date format
 -- and this order will correspond to the real order of the dates.
 -- I.e '2015-31-12' string goes before '2016-01-01' string in the same way as 2015-31-12 date goes before 2016-01-01 date.
+
+
+
 ````
