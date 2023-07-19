@@ -331,4 +331,37 @@ LIMIT 10;
 -- standard_amt_usd by standard_qty or 0 if standard_qty is equal to 0 or is null.
 -- Inclution of CASE statement allows avoiding the error caused by division by zero if 
 -- standard_qty is eqal to 0 or is null.
+
+-- Example of using two WHEN statements within CAS statement
+-- Note that there are commas between parts of the SELECT clause that correspond to columns.
+-- There are no commas inside CASE statement between WHEN or ELSE statements
+SELECT a.name, SUM(total_amt_usd) total_spent, 
+        CASE WHEN SUM(total_amt_usd) > 200000 THEN 'top'
+        WHEN SUM(total_amt_usd) > 100000 THEN 'middle'
+        ELSE 'low' END AS customer_level
+FROM accounts a
+JOIN orders o
+ON a.id = o.account_id
+GROUP BY 1 -- variant: GROUP BY a.name
+ORDER BY 2 DESC;
+````
+
+# Order of dates
+
+````sql
+SELECT a.name, SUM(total_amt_usd) AS total_spent, 
+CASE WHEN SUM(total_amt_usd) > 200000 THEN 'top'
+WHEN SUM(total_amt_usd) > 100000 THEN 'middle'
+ELSE 'low' END AS customer_level
+FROM accounts a
+JOIN orders o
+ON a.id = o.account_id
+WHERE occurred_at > '2015-12-31'
+GROUP BY 1
+ORDER BY 2 DESC;
+-- Here, we needed to select only orders that occurred in 2016 and 2017. As the database only contained orders up to year 2017 
+-- included, we were able to simply select all orders with dates greater than December 31, 2015.
+-- Note that YYYY-MM-DD format allows ordering dates as strings in alphabetical order without converting them to date format
+-- and this order will correspond to the real order of the dates.
+-- I.e '2015-31-12' string goes before '2016-01-01' string in the same way as 2015-31-12 date goes before 2016-01-01 date.
 ````
