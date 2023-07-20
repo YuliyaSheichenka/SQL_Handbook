@@ -383,7 +383,46 @@ ORDER BY 2 DESC;
 -- Note that YYYY-MM-DD format allows ordering dates as strings in alphabetical order without converting them to date format
 -- and this order will correspond to the real order of the dates.
 -- I.e '2015-31-12' string goes before '2016-01-01' string in the same way as 2015-31-12 date goes before 2016-01-01 date.
+````
+
+# How to write subqueries
+A subquery (nested query) is a query that returns an intermediary table that you can interrogate like any other table. 
 
 
+````sql
+-- STEP 1
+-- The initial query that will be the basis of the subquery when it is placed within another query.
+-- As the subquery will be executed before the surrounding query, first make sure 
+-- that the part of the code that will later play the role of the subquery is running correctly.
+SELECT DATE_TRUNC('day', occurred_at) AS day, channel, COUNT(*) AS nb_events
+FROM web_events
+GROUP BY 1, 2
+ORDER BY 3 DESC
+
+-- STEP 2
+-- Here we format the initially written code as subquery. 
+-- The result is going to be the same as the previous piece of code.
+-- In order to treat the subquery as as table, an alias should be assigned to is.
+SELECT *
+FROM
+(SELECT DATE_TRUNC('day', occurred_at) AS day, channel, COUNT(*) AS nb_events
+FROM web_events
+GROUP BY 1, 2
+ORDER BY 3 DESC) subquery_alias ;
+
+
+-- STEP 3
+-- Now we can adujst the outer query to get the necessary information from the subquery table.
+-- Here we get average number of events per day per channel.
+-- Numbers in outer GROUP BY and ORDER BY clauses refer to names of columns in outer SELECT clause.
+-- Note that as outer query contains and ORDER BY clause (placing channels with the biggest number of events first),
+-- ORDER BY clause in subquery is redundant as the outerquery will reorder the results anyway.
+SELECT channel, AVG(nb_events)
+FROM
+(SELECT DATE_TRUNC('day', occurred_at) AS day, channel, COUNT(*) AS nb_events
+FROM web_events
+GROUP BY 1, 2) subquery_alias
+GROUP BY 1
+ORDER BY 2 DESC;
 
 ````
