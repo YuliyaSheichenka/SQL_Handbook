@@ -387,7 +387,8 @@ ORDER BY 2 DESC;
 
 # How to write subqueries
 A subquery (nested query) is a query that returns an intermediary table that you can interrogate like any other table. 
-
+To make nested queries more readable, indentation is used to distinguis subqueries from outer queries.
+(Outer query is also called main query.)
 
 ````sql
 -- STEP 1
@@ -404,11 +405,11 @@ ORDER BY 3 DESC
 -- The result is going to be the same as the previous piece of code.
 -- In order to treat the subquery as as table, an alias should be assigned to is.
 SELECT *
-FROM
-(SELECT DATE_TRUNC('day', occurred_at) AS day, channel, COUNT(*) AS nb_events
-FROM web_events
-GROUP BY 1, 2
-ORDER BY 3 DESC) subquery_alias ;
+FROM (SELECT DATE_TRUNC('day', occurred_at) AS day, 
+        channel, COUNT(*) AS nb_events
+        FROM web_events
+        GROUP BY 1, 2
+        ORDER BY 3 DESC) subquery_alias ;
 
 
 -- STEP 3
@@ -417,11 +418,11 @@ ORDER BY 3 DESC) subquery_alias ;
 -- Numbers in outer GROUP BY and ORDER BY clauses refer to names of columns in outer SELECT clause.
 -- Note that as outer query contains and ORDER BY clause (placing channels with the biggest number of events first),
 -- ORDER BY clause in subquery is redundant as the outerquery will reorder the results anyway.
-SELECT channel, AVG(nb_events)
-FROM
-(SELECT DATE_TRUNC('day', occurred_at) AS day, channel, COUNT(*) AS nb_events
-FROM web_events
-GROUP BY 1, 2) subquery_alias
+SELECT channel, AVG(nb_events) AS average_events
+FROM (SELECT DATE_TRUNC('day', occurred_at) AS day, 
+        channel, COUNT(*) AS nb_events
+        FROM web_events
+        GROUP BY 1, 2) subquery_alias
 GROUP BY 1
 ORDER BY 2 DESC;
 
