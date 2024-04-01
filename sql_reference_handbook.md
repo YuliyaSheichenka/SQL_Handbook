@@ -212,6 +212,35 @@ ON orders.account_id = accounts.id;
 -- The columns from the "orders" table will be leftmost in the resulting view
 ````
 
+### Left or right join?
+It is easy to change a right join into a left join by switching the table names in FROM and JOIN clauses. For this reason, the convention is to use left join to make the code more consistent and easy to read.
+
+### Inner join
+INNER JOIN = JOIN
+
+### Outer joins
+LEFT OUTER JOIN = LEFT JOIN (inner join + unmatchend rows from the left table)
+RIGHT OUTER JOIN = RIGHT JOIN (inner join + unmatched rows from the right table)
+FULL OUTER JOIN = OUTER JOIN (inner join + any unmatched rows from both the left and the right table)
+
+### Filtering tables before or after join (place of WHERE)
+````sql
+SELECT orders.*, accounts.*
+FROM orders
+LEFT JOIN accounts
+ON orders.account_id = accounts.id
+WHERE accounts.sales_rep_id = 321500
+-- In this query, the tables are joined and the resulting table is filtered based on the sales_rep_id of interest.
+
+SELECT orders.*, accounts.*
+FROM orders
+LEFT JOIN accounts
+ON oders.account_id = accounts.id
+AND accounts.sales_rep_id = 321500
+-- In this query, the table accounts is pre-filtered on the sales_rep_id of interest before the join; 
+-- So the accounts table being used for the join has fewer rows than the initial unfiltered one.
+`````
+
 ### Return a table with a column where the last and the first lettres for each string in the original column have been removed
 
 ````sql
@@ -365,7 +394,7 @@ ORDER BY 2 DESC;
 
 ````
 
-# Order of dates
+### Order of dates
 
 ````sql
 SELECT a.name, SUM(total_amt_usd) AS total_spent, 
@@ -385,7 +414,7 @@ ORDER BY 2 DESC;
 -- I.e '2015-31-12' string goes before '2016-01-01' string in the same way as 2015-31-12 date goes before 2016-01-01 date.
 ````
 
-# How to write subqueries
+### How to write subqueries
 A subquery (nested query) is a query that returns an intermediary table that you can interrogate like any other table. 
 To make nested queries more readable, indentation is used to distinguis subqueries from outer queries.
 (Outer query is also called main query.)
@@ -395,7 +424,8 @@ To make nested queries more readable, indentation is used to distinguis subqueri
 -- The initial query that will be the basis of the subquery when it is placed within another query.
 -- As the subquery will be executed before the surrounding query, first make sure 
 -- that the part of the code that will later play the role of the subquery is running correctly.
-SELECT DATE_TRUNC('day', occurred_at) AS day, channel, COUNT(*) AS nb_events
+SELECT DATE_TRUNC('day', occurred_at) AS day, 
+        channel, COUNT(*) AS nb_events
 FROM web_events
 GROUP BY 1, 2
 ORDER BY 3 DESC
@@ -406,7 +436,7 @@ ORDER BY 3 DESC
 -- In order to treat the subquery as as table, an alias should be assigned to is.
 SELECT *
 FROM (SELECT DATE_TRUNC('day', occurred_at) AS day, 
-        channel, COUNT(*) AS nb_events
+        channel, COUNT(*) AS events
         FROM web_events
         GROUP BY 1, 2
         ORDER BY 3 DESC) subquery_alias ;
@@ -418,12 +448,38 @@ FROM (SELECT DATE_TRUNC('day', occurred_at) AS day,
 -- Numbers in outer GROUP BY and ORDER BY clauses refer to names of columns in outer SELECT clause.
 -- Note that as outer query contains and ORDER BY clause (placing channels with the biggest number of events first),
 -- ORDER BY clause in subquery is redundant as the outerquery will reorder the results anyway.
-SELECT channel, AVG(nb_events) AS average_events
+SELECT channel, AVG(events) AS average_events
 FROM (SELECT DATE_TRUNC('day', occurred_at) AS day, 
-        channel, COUNT(*) AS nb_events
+                channel, COUNT(*) AS events
         FROM web_events
         GROUP BY 1, 2) subquery_alias
 GROUP BY 1
 ORDER BY 2 DESC;
 
+````
+### Using subqueries in conditional statements
+If a subquery returns a single value it can be used in a conditional statement like WHERE or HAVING,
+or in SELECT where the value in the form of the subquery can be nested with in a CASE statement.
+
+If a subqery returns several values or a column, IN should be used as a conditional statement.
+
+There is no need to use an alias when you write a subquery that returns a single value or a column in a canditional statement,
+because the subquery is treated as an individual value (or a set of values) rather than as a table.
+
+````sql
+-- Here we obtain the average quantity of three kinds of paper that was sold during the same month of the same year
+-- as the year and month when the first order was placed.
+SELECT AVG(standard_qty) avg_std, AVG(gloss_qty) avg_gls, AVG(poster_qty) avg_pst
+FROM orders
+WHERE DATE_TRUNC('month', occurred_at) = 
+     (SELECT DATE_TRUNC('month', MIN(occurred_at)) FROM orders);
+
+
+
+-- Here we obtain the total amount of sales for all kinds of paper sold the same month of the same year
+-- as the year and mont when the first ofder was placed
+SELECT SUM(total_amt_usd)
+FROM orders
+WHERE DATE_TRUNC('month', occurred_at) = 
+      (SELECT DATE_TRUNC('month', MIN(occurred_at)) FROM orders);
 ````
