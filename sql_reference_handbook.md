@@ -239,7 +239,13 @@ ON oders.account_id = accounts.id
 AND accounts.sales_rep_id = 321500
 -- In this query, the table accounts is pre-filtered on the sales_rep_id of interest before the join; 
 -- So the accounts table being used for the join has fewer rows than the initial unfiltered one.
-`````
+````
+
+### NULLs
+NULL are not values but are property of the data.
+COUNT aggregate function used on a column with NULL values returns the number of rows with non-null values.
+AVG aggregate function ignores the NULL values both in the numerator and the denominator
+
 
 ### Return a table with a column where the last and the first lettres for each string in the original column have been removed
 
@@ -302,8 +308,20 @@ ORDER BY total_amt_usd DESC
 LIMIT 2;
 ````
 
+### GROUP BY and aggregations
+GROUP BY allows creating segments that will aggregate independent from one another.
+Any column in the SELECT statement that in not used with an aggregation function must be in the GROUP BY clause.
+GROUP BY is always placed between WHERE and ORDER BY.
+
+
+### LIMIT and aggregations
+SQL first calculates the aggregations, than displays the number of rows indicated in the LIMIT clause. 
+(And not the reverse where SQL would first cut the table to the number of rows indicated in the LIMIT clause, then calculate aggregations).
+
+
+
 ### Order of columns in GROUP BY and ORDER BY clauses
-The order of column names in GROUP BY clause does not matter (the order of columns will be the same)
+The order of column names in GROUP BY clause does not matter (the order of columns in the result will be the same)
 The order of column names in ORDER BY clause matters as columns are ordered from left to right according 
 to their order in the ORDER BY clause.
 
@@ -328,6 +346,28 @@ ORDER BY account_name;
 ### Difference between HAVING and WHERE
 HAVING can be used on a column created using an aggregating function, WHERE cannot.
 WHERE is placed before GROUP BY, HAVING after GROUP BY and before ORDER BY.
+
+
+### HAVING not working with alias of column
+````sql 
+-- The following query will not work as it uses the alias of the column in the HAVING clause
+-- (error "column "total_across_orders" does not exist")
+SELECT a.id account_id, a.name account_name, SUM(o.total_amt_usd) total_across_orders
+FROM accounts a
+JOIN orders o
+ON a.id = o.account_id
+GROUP BY a.id, a.name
+HAVING total_across_orders < 1000;
+
+
+-- You must use the aggregator and the non-aliased name of the column in the HAVING clause for the query to work:
+SELECT a.id account_id, a.name account_name, SUM(o.total_amt_usd) total_across_orders
+FROM accounts a
+JOIN orders o
+ON a.id = o.account_id
+GROUP BY a.id, a.name
+HAVING SUM(o.total_amt_usd) < 1000;
+````
 
 ### LIMIT and big databases
 When working with a big database it is useful to use the LIMIT clause when you are trying to have a look at the general constitution of a database for reasons of speed and cost.
