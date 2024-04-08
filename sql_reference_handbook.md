@@ -293,7 +293,9 @@ SELECT occurred_at
 FROM web_events
 ORDER BY occurred_at DESC
 LIMIT 1;
--- Here, we sort timestaps in descending order and limit the result to 1 row
+-- Here, we sort timestaps in descending order and limit the result to 1 row.
+-- It is possible that there are several rows with the same maximum or minimum value (ties). In order not to miss them,
+-- it is useful to set LIMIT to a larger number ex. 3 or 5. (this is a general remark on using LIMIT, not only for dates).
 ````
 
 ### How to find the median of a column
@@ -386,6 +388,19 @@ GROUP BY 1
 ORDER BY 2 DESC;
 
 ````
+
+### Grouping data by day of week using DATE_PART
+````sql 
+SELECT DATE_PART('dow', occurred_at) AS day_of_week, 
+account_id, occurred_at, total
+FROM orders;
+-- The parameter 'dow' (day of week) allows grouping data by day of the week 
+-- (ex. data for all Mondays, across all months and years present in the table).
+-- The resulting column day_of_week will contain numbers from 0 (Sunday) to 6 (Saturday).
+
+````
+
+
 
 ### CASE Clause
 CASE statement in always used within SELECT clause.
