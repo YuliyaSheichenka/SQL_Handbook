@@ -403,7 +403,8 @@ FROM orders;
 
 
 ### CASE Clause
-CASE statement in always used within SELECT clause.
+CASE clause in always used within SELECT clause.
+There is a comma before a CASE clause.
 CASE statement includes WHEN, THEN, (optionnaly ELSE) and END keywords.
 (There are no commas at the end of each condition beginning with WHEN)
 ````sql
@@ -413,10 +414,10 @@ FROM orders
 LIMIT 10;
 -- in this case, we create the column unit_price that contains either the result of division of 
 -- standard_amt_usd by standard_qty or 0 if standard_qty is equal to 0 or is null.
--- Inclution of CASE statement allows avoiding the error caused by division by zero if 
+-- Inclusion of CASE statement allows avoiding the error caused by division by zero if 
 -- standard_qty is eqal to 0 or is null.
 
--- Example of using two WHEN statements within CAS statement
+-- Example of using two WHEN statements within CASE clause
 -- Note that there are commas between parts of the SELECT clause that correspond to columns.
 -- There are no commas inside CASE statement between WHEN or ELSE statements
 SELECT a.name, SUM(total_amt_usd) total_spent, 
@@ -537,4 +538,111 @@ SELECT SUM(total_amt_usd)
 FROM orders
 WHERE DATE_TRUNC('month', occurred_at) = 
       (SELECT DATE_TRUNC('month', MIN(occurred_at)) FROM orders);
+
 ````
+
+
+### Syntax of WITH statements
+
+The WITH statement can be used what a subquery takes a long time to run so it is unreasonabe to 
+launch it with every query. WITH statement allows running such a subquery once. The results of the query are saved as a table
+that can be queries using subsequent queries.
+
+````sql
+-- Here we see a query using a subquery used to find the average number of events for each channel per day.
+-- The table resulting from the subquery is aliased 'sub'
+SELECT channel, AVG(events) AS average_events 
+FROM 
+        (SELECT DATE_TRUNC('day',occurred_at) AS day, channel, COUNT(*) as events 
+        FROM web_events GROUP BY 1,2) sub 
+GROUP BY channel 
+ORDER BY 2 DESC;
+
+
+-- The subquery can be used separately:
+SELECT DATE_TRUNC('day',occurred_at) AS day, 
+       channel, COUNT(*) as events
+FROM web_events 
+GROUP BY 1,2
+
+
+-- This subquery is the part that can be put in a with statement.
+-- 'events' is the alias of the table resulting from suquery
+WITH events AS (
+          SELECT DATE_TRUNC('day',occurred_at) AS day, 
+                        channel, COUNT(*) as events
+          FROM web_events 
+          GROUP BY 1,2)
+
+
+
+-- The query where the initial subquery had been replaces with WITH statement:
+WITH events AS (
+          SELECT DATE_TRUNC('day',occurred_at) AS day, 
+                        channel, COUNT(*) as events
+          FROM web_events 
+          GROUP BY 1,2)
+
+SELECT channel, AVG(events) AS average_events
+FROM events
+GROUP BY channel
+ORDER BY 2 DESC;
+````
+
+### Using WITH statement to create several tables
+
+If the WITH statement contains several tables, they should be separated by commas.
+(A comma after each table except for the last table leading to the final query)
+
+The statements with WITH are called CTE (Common Table Expressions / expression de table commune). 
+They make it possible time by creating the table in WITH statement once and then reusing it for queries. They also can be more readable than subqueries.
+
+````sql
+WITH table1 AS (
+          SELECT *
+          FROM web_events),
+
+     table2 AS (
+          SELECT *
+          FROM accounts)
+
+
+SELECT *
+FROM table1
+JOIN table2
+ON table1.account_id = table2.id;
+````
+
+### RIGHT and LEFT statement syntax
+
+````sql
+SELECT RIGHT(website, 3) AS domain, COUNT(*) num_companies
+FROM accounts
+GROUP BY 1
+ORDER BY 2 DESC;
+-- The query serves to count the number of sites belonging to a certain domain (.com, .org, .net).
+-- The table 'accounts' contains column 'website 'that has website address in text format. 
+-- The expression 'RIGHT(website, 3) AS domain' pulls three rightmost characters of the website address and 
+-- puts them into a new column called 'domain'. Groupinb by this column and counting the rows for each domain
+-- category allows knowing how many websites belong to this or that domain.
+````
+
+### Split a string by delimiter using STRPOS
+
+```sql
+SELECT name, LEFT(name, (STRPOS(name, ' ') - 1)) AS first_name, RIGHT(name, (LENGTH(name) - STRPOS(name, ' '))) AS last_name
+FROM sales_reps;
+
+-- This query allows creating columns 'first_name' and 'last_name' based on the column 'name' that contains full names like 'Samuel Racine'
+-- expression STRPOS(name, ' ') get the position of the space in a string, counting from the left and with indexing beginning at 1.
+-- exrpession LEFT(name, (STRPOS(name, ' ') - 1)) allows getting the leftmost part of the string up until the space
+-- but not including the space (hence '-1'). 
+-- expressoin LENGTH(name) allows getting the length of a string as a number.
+
+-- in order to get the last name, the rightmost part of the string should be included in the column last_name.
+-- To determine the position of the split, we subtract the position of the space from the length of the string 
+-- (LENGTH(name) - STRPOS(name, ' ')) 
+-- The resulting number means the number of characters, counting from the right, that we must take to get the last name:
+-- RIGHT(name, (LENGTH(name) - STRPOS(name, ' ')))
+
+```
