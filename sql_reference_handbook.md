@@ -646,3 +646,112 @@ FROM sales_reps;
 -- RIGHT(name, (LENGTH(name) - STRPOS(name, ' ')))
 
 ```
+
+### Concatenate strings
+
+```sql
+-- Syntax with CONCAT
+WITH t1 AS (
+    SELECT LEFT(primary_poc,     STRPOS(primary_poc, ' ') -1 ) first_name,  RIGHT(primary_poc, LENGTH(primary_poc) - STRPOS(primary_poc, ' ')) last_name, name
+    FROM accounts)
+SELECT first_name, last_name, CONCAT(first_name, '.', last_name, '@', name, '.com')
+FROM t1;
+
+-- Syntax with piping ||
+WITH t1 AS (
+    SELECT LEFT(primary_poc,     STRPOS(primary_poc, ' ') -1 ) first_name,  RIGHT(primary_poc, LENGTH(primary_poc) - STRPOS(primary_poc, ' ')) last_name, name
+    FROM accounts)
+SELECT first_name, last_name, first_name || '.'  || last_name ||'@' || name || '.com' email
+FROM t1;
+-- In both cases, there can be several strings used in concatenation. 
+-- The elements used in concatenation can either be strings in table columns (first_name, last_name, name in the example above)
+-- or hard-coded strings ('.'  or '@' or '.com' in the example above)
+```
+
+### Calculate running total (window function)
+
+````sql
+-- Running total over the whole range of dates present in the table:
+SELECT standard_amt_usd,
+SUM(standard_amt_usd) OVER (ORDER BY occurred_at) AS running_total
+FROM orders;
+-- This query returns two columns, one for dollar amount, the other for running total of dollar amounts 
+-- (total of all rows up to and including the present row). 
+-- ORDER BY clause is used to order rows of the table by date so that the running total is in chronological order.
+
+
+-- Running total over periods (month, year) or partitions
+SELECT standard_amt_usd,
+DATE_TRUNC('year', occurred_at) AS year,
+SUM(standard_amt_usd) OVER (PARTITION BY DATE_TRUNC('year', occurred_at) ORDER BY occurred_at) AS running_total
+FROM orders;
+-- This query returns three columns: one for dollar amount, the second for date truncated at year, 
+-- the third one for running total for each year period: as soon as year in occurred_at column changes from 2013 to 2014, 
+-- the running total begins anew for 2014 without adding new amounts to the total in the last row for year 2013.
+-- For this to funciton, ORDER BY clause is used to sort table rows in chronological order.
+````
+
+### Aliases for window functions
+
+```sql
+SELECT id,
+       account_id,
+       DATE_TRUNC('year',occurred_at) AS year,
+       DENSE_RANK() OVER account_year_window AS dense_rank,
+       total_amt_usd,
+       SUM(total_amt_usd) OVER account_year_window AS sum_total_amt_usd,
+       COUNT(total_amt_usd) OVER account_year_window AS count_total_amt_usd,
+       AVG(total_amt_usd) OVER account_year_window AS avg_total_amt_usd,
+       MIN(total_amt_usd) OVER account_year_window AS min_total_amt_usd,
+       MAX(total_amt_usd) OVER account_year_window AS max_total_amt_usd
+FROM orders
+WINDOW account_year_window AS (PARTITION BY account_id ORDER BY DATE_TRUNC('year',occurred_at))
+```
+
+### LAG and LEAD functions (calculating differences between rows)
+
+````sql
+SELECT account_id,
+       standard_sum,
+       LAG(standard_sum) OVER (ORDER BY standard_sum) AS lag,
+       LEAD(standard_sum) OVER (ORDER BY standard_sum) AS lead,
+       standard_sum - LAG(standard_sum) OVER (ORDER BY standard_sum) AS lag_difference,
+       LEAD(standard_sum) OVER (ORDER BY standard_sum) - standard_sum AS lead_difference
+FROM (
+SELECT account_id,
+       SUM(standard_qty) AS standard_sum
+  FROM orders 
+ GROUP BY 1
+ ) sub
+ -- For any given row, LAG(standard_sum) retrieves standard_sum of the preceding row. 
+ -- In this query, this value is then shown in the column named "lag". 
+ -- If the preceding row does not exist, the value returned in the lag column is NULL.
+ -- Similarly, for a given row, LEAD(standard_sum) retrieves standard_sum of the following row.
+ -- The value is then shown in the column named "lead".
+ -- If the following row does not exist, the value returned in the lead column is NULL.
+ -- It is important to order rows in a way that makes sense. Here, the rows were ordered based on the 
+ -- total sum of all orders made by the same account_id, so that the first row has the smallest amount. 
+ -- This makes it possible to calculate the differences between accounts (columns lag_difference, lead_difference)
+````
+
+### NTILE (Percentile function / quartile / quantile)
+````sql
+--  NTILE can be used with window functions to identify what percentile (or quartile, or any other subdivision) 
+-- a given row falls into.
+
+-- Particularity of functioning as explained on Udacity:
+-- "In cases with relatively few rows in a window, the NTILE function doesn’t calculate exactly as you might expect. For example, If you only had two records and you were measuring percentiles, you’d expect one record to define the 1st percentile, and the other record to define the 100th percentile. Using the NTILE function, what you’d actually see is one record in the 1st percentile, and one in the 2nd percentile.
+
+--In other words, when you use a NTILE function but the number of rows in the partition is less than the NTILE(number of groups), then NTILE will divide the rows into as many groups as there are members (rows) in the set but then stop short of the requested number of groups. If you’re working with very small windows, keep this in mind and consider using quartiles or similarly small bands".
+
+SELECT account_id, occurred_at, total_amt_usd,
+NTILE(4) OVER (PARTITION BY account_id ORDER BY total_amt_usd) AS total_percentile
+FROM orders
+ORDER BY account_id;
+
+-- Here, for each account_id the values in the column total_amt_usd are ordered in ascending order.
+-- For each account_id, these sorted values are divided into 4 parts (quartiles).
+-- An additional column called total_percentile contains value indicating the quartile to which
+-- an order was assigned (1, 2, 3 or 4)
+
+````
